@@ -48,6 +48,8 @@ def upload_resume(request):
     matched_skills = []
     missing_skills = []
     error = None
+    suggestions = []
+    verdict = None
 
     if request.method == "POST":
         name = request.POST.get("name")
@@ -68,6 +70,8 @@ def upload_resume(request):
 
             resume_skills = extract_skills(resume_text)
             jd_skills = extract_skills(jd_text)
+            verdict = ai_verdict(percentage)
+            suggestions = ai_resume_suggestions(missing_skills)
 
             matched_skills = list(set(resume_skills) & set(jd_skills))
             missing_skills = list(set(jd_skills) - set(resume_skills))
@@ -85,12 +89,43 @@ def upload_resume(request):
             "percentage": percentage,
             "matched_skills": matched_skills,
             "missing_skills": missing_skills,
-            "error": error
+            "error": error,
+            "verdict": verdict,
+            "suggestions": suggestions,
         }
     )
+
+def ai_resume_suggestions(missing_skills):
+    suggestions = []
+
+    for skill in missing_skills:
+        suggestions.append(f"Consider adding or highlighting {skill} in your resume.")
+
+    if not suggestions:
+        suggestions.append("Your resume aligns well with the job description.")
+
+    return suggestions
 
 
 # ---------------- HISTORY VIEW ----------------
 def history(request):
     results = AnalysisResult.objects.all().order_by("-created_at")
     return render(request, "history.html", {"results": results})
+
+
+def ai_verdict(percentage):
+    if percentage >= 75:
+        return "Strong Match"
+    elif percentage >= 50:
+        return "Moderate Match"
+    else:
+        return "Weak Match"
+
+
+from django.shortcuts import redirect, get_object_or_404
+
+def delete_history(request, id):
+    if request.method == "POST":
+        record = get_object_or_404(AnalysisResult, id=id)
+        record.delete()
+    return redirect("history")

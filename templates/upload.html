@@ -23,7 +23,7 @@
         }
 
         .badge-skill {
-            margin: 3px;
+            margin: 4px;
             font-size: 0.9rem;
         }
 
@@ -54,17 +54,20 @@
             <div class="card p-4">
                 <h3 class="text-center mb-4 fw-bold">Resume Analyzer</h3>
 
+                <!-- Upload Form -->
                 <form method="post" enctype="multipart/form-data" onsubmit="showLoader()">
                     {% csrf_token %}
 
                     <div class="mb-3">
                         <label class="form-label fw-semibold">Full Name</label>
-                        <input type="text" class="form-control" name="name" placeholder="Enter your full name" required>
+                        <input type="text" class="form-control" name="name"
+                               placeholder="Enter your full name" required>
                     </div>
 
                     <div class="mb-3">
                         <label class="form-label fw-semibold">Upload Resume (PDF)</label>
-                        <input type="file" class="form-control" name="resume" accept=".pdf" required>
+                        <input type="file" class="form-control" name="resume"
+                               accept=".pdf" required>
                         <div class="form-text">Only PDF files are supported.</div>
                     </div>
 
@@ -79,39 +82,83 @@
                     </button>
                 </form>
 
+                <!-- Error Message -->
                 {% if error %}
                 <div class="alert alert-danger mt-3">
                     {{ error }}
                 </div>
                 {% endif %}
 
+                <!-- Analysis Result -->
                 {% if percentage %}
                 <hr class="my-4">
 
+                <!-- Match Percentage -->
                 <div class="text-center mb-3">
                     <h5 class="fw-bold">Match Percentage</h5>
-                    <div class="display-6 text-success fw-bold">{{ percentage }}%</div>
+                    <div class="display-6 text-success fw-bold">
+                        {{ percentage }}%
+                    </div>
                 </div>
 
+                <!-- AI Verdict -->
+                <div class="text-center mb-4">
+                    <h6 class="fw-semibold">AI Verdict</h6>
+
+                    {% if verdict == "Strong Match" %}
+                        <span class="badge bg-success fs-6 px-3 py-2">
+                            {{ verdict }}
+                        </span>
+                    {% elif verdict == "Moderate Match" %}
+                        <span class="badge bg-warning text-dark fs-6 px-3 py-2">
+                            {{ verdict }}
+                        </span>
+                    {% else %}
+                        <span class="badge bg-danger fs-6 px-3 py-2">
+                            {{ verdict }}
+                        </span>
+                    {% endif %}
+                </div>
+
+                <!-- AI Resume Suggestions -->
+                {% if suggestions %}
+                <h6 class="fw-semibold">AI Resume Suggestions</h6>
+                <ul class="list-group mb-4">
+                    {% for tip in suggestions %}
+                        <li class="list-group-item">
+                            {{ tip }}
+                        </li>
+                    {% endfor %}
+                </ul>
+                {% endif %}
+
+                <!-- Matched Skills -->
                 {% if matched_skills %}
                 <h6 class="fw-semibold">Matched Skills</h6>
                 <div class="mb-3">
                     {% for skill in matched_skills %}
-                        <span class="badge bg-success badge-skill">{{ skill }}</span>
+                        <span class="badge bg-success badge-skill">
+                            {{ skill }}
+                        </span>
                     {% endfor %}
                 </div>
                 {% endif %}
 
+                <!-- Missing Skills -->
                 {% if missing_skills %}
                 <h6 class="fw-semibold">Missing Skills</h6>
                 <div class="mb-3">
                     {% for skill in missing_skills %}
-                        <span class="badge bg-danger badge-skill">{{ skill }}</span>
+                        <span class="badge bg-danger badge-skill">
+                            {{ skill }}
+                        </span>
                     {% endfor %}
                 </div>
                 {% endif %}
+
                 {% endif %}
 
+                <!-- History Link -->
                 <div class="text-center mt-4">
                     <a href="/history/" class="link-primary fw-semibold">
                         View Analysis History →
