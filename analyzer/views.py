@@ -1,17 +1,23 @@
-from django.shortcuts import render
+from django.shortcuts import render, redirect, get_object_or_404
 from .models import Resume, AnalysisResult
 import PyPDF2
 
-from sklearn.feature_extraction.text import TfidfVectorizer
-from sklearn.metrics.pairwise import cosine_similarity
 
-
-# ---------------- SKILLS LIST ----------------
-SKILLS = [
-    "python", "django", "machine learning",
-    "sql", "html", "css", "javascript",
-    "numpy", "pandas", "excel", "power bi"
-]
+# ---------------- ROLE SKILL MAP (AI KNOWLEDGE BASE) ----------------
+ROLES = {
+    "ML Engineer": [
+        "python", "machine learning", "numpy", "pandas",
+        "scikit-learn", "tensorflow", "pytorch"
+    ],
+    "AI Engineer": [
+        "python", "machine learning", "deep learning",
+        "nlp", "tensorflow", "pytorch", "opencv"
+    ],
+    "Full Stack Developer": [
+        "html", "css", "javascript", "django",
+        "react", "node", "sql"
+    ]
+}
 
 
 # ---------------- PDF TEXT EXTRACTION ----------------
@@ -28,83 +34,89 @@ def extract_text(path):
 
 # ---------------- SKILL EXTRACTION ----------------
 def extract_skills(text):
-    return [skill for skill in SKILLS if skill in text.lower()]
+    all_skills = set(skill for skills in ROLES.values() for skill in skills)
+    return [skill for skill in all_skills if skill in text]
 
 
-# ---------------- RESUME ↔ JD MATCH ----------------
-def match_resume_with_jd(resume_text, jd_text):
-    documents = [resume_text, jd_text]
+# ---------------- ROLE MATCHING LOGIC ----------------
+def match_resume_to_roles(resume_skills):
+    scores = {}
+    for role, skills in ROLES.items():
+        matched = set(resume_skills) & set(skills)
+        score = (len(matched) / len(skills)) * 100
+        scores[role] = round(score, 2)
 
-    tfidf = TfidfVectorizer(stop_words="english")
-    matrix = tfidf.fit_transform(documents)
-
-    score = cosine_similarity(matrix[0:1], matrix[1:2])[0][0]
-    return round(score * 100, 2)
+    best_role = max(scores, key=scores.get)
+    return best_role, scores
 
 
-# ---------------- MAIN VIEW ----------------
+# ---------------- AI VERDICT ----------------
+def ai_verdict(percentage):
+    if percentage >= 70:
+        return "Strong Match"
+    elif percentage >= 40:
+        return "Moderate Match"
+    return "Weak Match"
+
+
+# ---------------- AI SUGGESTIONS ----------------
+def ai_resume_suggestions(missing_skills):
+    if not missing_skills:
+        return ["Your resume strongly matches this role."]
+    return [f"Consider adding {skill} to improve your profile." for skill in missing_skills]
+
+
+# ==================================================
+# PAGE 1 : UPLOAD FORM
+# ==================================================
 def upload_resume(request):
-    percentage = None
-    matched_skills = []
-    missing_skills = []
-    error = None
-    suggestions = []
-    verdict = None
-
     if request.method == "POST":
-        name = request.POST.get("name")
-        resume_file = request.FILES.get("resume")
-        jd_text = request.POST.get("jd")
+        resume = Resume.objects.create(
+            name=request.POST.get("name"),
+            resume_file=request.FILES.get("resume")
+        )
+        # 🔁 Redirect to result page
+        return redirect("result", resume.id)
 
-        if not resume_file or not jd_text:
-            error = "Resume and Job Description are required."
-        else:
-            resume = Resume.objects.create(
-                name=name,
-                resume_file=resume_file
-            )
+    return render(request, "upload.html")
 
-            resume_text = extract_text(resume.resume_file.path)
 
-            percentage = match_resume_with_jd(resume_text, jd_text)
+# ==================================================
+# PAGE 2 : RESULT PAGE (ALL AI DETAILS)
+# ==================================================
+def result(request, id):
+    resume = get_object_or_404(Resume, id=id)
 
-            resume_skills = extract_skills(resume_text)
-            jd_skills = extract_skills(jd_text)
-            verdict = ai_verdict(percentage)
-            suggestions = ai_resume_suggestions(missing_skills)
+    resume_text = extract_text(resume.resume_file.path)
+    resume_skills = extract_skills(resume_text)
 
-            matched_skills = list(set(resume_skills) & set(jd_skills))
-            missing_skills = list(set(jd_skills) - set(resume_skills))
+    best_role, scores = match_resume_to_roles(resume_skills)
+    percentage = scores[best_role]
 
-            # ✅ HISTORY IS SAVED HERE (THIS WAS YOUR ISSUE)
-            AnalysisResult.objects.create(
-                resume=resume,
-                match_percentage=percentage
-            )
+    matched_skills = list(set(resume_skills) & set(ROLES[best_role]))
+    missing_skills = list(set(ROLES[best_role]) - set(matched_skills))
+
+    verdict = ai_verdict(percentage)
+    suggestions = ai_resume_suggestions(missing_skills)
+
+    AnalysisResult.objects.create(
+        resume=resume,
+        match_percentage=percentage
+    )
 
     return render(
         request,
-        "upload.html",
+        "result.html",
         {
+            "name": resume.name,
+            "best_role": best_role,
             "percentage": percentage,
+            "verdict": verdict,
             "matched_skills": matched_skills,
             "missing_skills": missing_skills,
-            "error": error,
-            "verdict": verdict,
-            "suggestions": suggestions,
+            "suggestions": suggestions
         }
     )
-
-def ai_resume_suggestions(missing_skills):
-    suggestions = []
-
-    for skill in missing_skills:
-        suggestions.append(f"Consider adding or highlighting {skill} in your resume.")
-
-    if not suggestions:
-        suggestions.append("Your resume aligns well with the job description.")
-
-    return suggestions
 
 
 # ---------------- HISTORY VIEW ----------------
@@ -113,17 +125,7 @@ def history(request):
     return render(request, "history.html", {"results": results})
 
 
-def ai_verdict(percentage):
-    if percentage >= 75:
-        return "Strong Match"
-    elif percentage >= 50:
-        return "Moderate Match"
-    else:
-        return "Weak Match"
-
-
-from django.shortcuts import redirect, get_object_or_404
-
+# ---------------- DELETE HISTORY ----------------
 def delete_history(request, id):
     if request.method == "POST":
         record = get_object_or_404(AnalysisResult, id=id)

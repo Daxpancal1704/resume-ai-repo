@@ -60,21 +60,21 @@
 
                     <div class="mb-3">
                         <label class="form-label fw-semibold">Full Name</label>
-                        <input type="text" class="form-control" name="name"
-                               placeholder="Enter your full name" required>
-                    </div>
-
-                    <div class="mb-3">
-                        <label class="form-label fw-semibold">Upload Resume (PDF)</label>
-                        <input type="file" class="form-control" name="resume"
-                               accept=".pdf" required>
-                        <div class="form-text">Only PDF files are supported.</div>
+                        <input type="text"
+                               class="form-control"
+                               name="name"
+                               placeholder="Enter your full name"
+                               required>
                     </div>
 
                     <div class="mb-4">
-                        <label class="form-label fw-semibold">Job Description</label>
-                        <textarea class="form-control" name="jd" rows="4"
-                                  placeholder="Paste the job description here…" required></textarea>
+                        <label class="form-label fw-semibold">Upload Resume (PDF)</label>
+                        <input type="file"
+                               class="form-control"
+                               name="resume"
+                               accept=".pdf"
+                               required>
+                        <div class="form-text">Only PDF files are supported.</div>
                     </div>
 
                     <button class="btn btn-primary w-100 py-2 fw-semibold">
@@ -92,6 +92,12 @@
                 <!-- Analysis Result -->
                 {% if percentage %}
                 <hr class="my-4">
+                <h5 class="fw-bold text-center">Best Matched Role</h5>
+                        <div class="text-center mb-3">
+                      <span class="badge bg-primary fs-6 px-3 py-2">
+                                         {{ best_role }}
+                      </span>
+                                    </div>
 
                 <!-- Match Percentage -->
                 <div class="text-center mb-3">
