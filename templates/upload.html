@@ -1,178 +1,203 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>AI Resume Analyzer</title>
+<meta charset="UTF-8">
+<title>AI Resume Analyzer</title>
 
-    <!-- Bootstrap CSS -->
-    <link
-      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
-      rel="stylesheet"
-    >
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 
-    <style>
-        body {
-            min-height: 100vh;
-            background-size: cover;
-            background-position: center;
-            background-attachment: fixed;
-            transition: background-image 1.2s ease-in-out;
-        }
+<style>
+/* ================= BASE ================= */
+body{
+    min-height:100vh;
+    background-size:cover;
+    background-position:center;
+    background-attachment:fixed;
+    transition:background-image 2s ease;
+    font-family:"Segoe UI",system-ui,sans-serif;
+}
 
-        /* Dark overlay */
-        .bg-overlay {
-            position: fixed;
-            inset: 0;
-            background: rgba(15, 23, 42, 0.78);
-            z-index: -1;
-        }
+.bg-overlay{
+    position:fixed;
+    inset:0;
+    background:rgba(15,23,42,0.85);
+    z-index:-1;
+}
 
-        /* BIG animated card */
-        .card {
-            background: rgba(255, 255, 255, 0.96);
-            border: none;
-            border-radius: 20px;
-            box-shadow: 0 30px 60px rgba(0,0,0,0.35);
-            padding: 2.8rem;
-            animation: zoomFade 0.9s ease forwards;
-            transform-origin: center;
-        }
+/* ================= CARD ================= */
+.card{
+    background:rgba(255,255,255,0.97);
+    border-radius:22px;
+    padding:3rem;
+    box-shadow:0 30px 70px rgba(0,0,0,0.45);
+    animation:entry 1s ease;
+    transition:transform .4s ease, box-shadow .4s ease;
+}
 
-        /* Strong animation */
-        @keyframes zoomFade {
-            from {
-                opacity: 0;
-                transform: scale(0.9) translateY(40px);
-            }
-            to {
-                opacity: 1;
-                transform: scale(1) translateY(0);
-            }
-        }
+/* FLOATING IDLE MOTION */
+.card{
+    animation:entry 1s ease, floatCard 6s ease-in-out infinite;
+}
 
-        .title-ai {
-            font-size: 2.2rem;
-            background: linear-gradient(90deg, #3b82f6, #22c55e);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
+@keyframes floatCard{
+    0%,100%{ transform:translateY(0); }
+    50%{ transform:translateY(-8px); }
+}
 
-        .form-control {
-            padding: 0.75rem 0.9rem;
-            font-size: 1.05rem;
-        }
+/* CARD HOVER TILT */
+.card:hover{
+    transform:rotateX(4deg) rotateY(-4deg) scale(1.02);
+    box-shadow:0 45px 110px rgba(59,130,246,0.5);
+}
 
-        .btn-primary {
-            font-size: 1.1rem;
-        }
+/* ENTRY */
+@keyframes entry{
+    from{opacity:0;transform:scale(.85) translateY(60px);}
+    to{opacity:1;transform:scale(1) translateY(0);}
+}
 
-        .loading-overlay {
-            display: none;
-            position: fixed;
-            inset: 0;
-            background: rgba(255,255,255,0.9);
-            z-index: 9999;
-            align-items: center;
-            justify-content: center;
-            flex-direction: column;
-        }
-    </style>
+/* ================= TITLE ================= */
+.title-ai{
+    font-size:2.7rem;
+    font-weight:800;
+    background:linear-gradient(90deg,#3b82f6,#22c55e);
+    -webkit-background-clip:text;
+    -webkit-text-fill-color:transparent;
+}
+
+/* ================= INPUTS ================= */
+.form-control{
+    font-size:1.1rem;
+    padding:.9rem 1rem;
+    border-radius:14px;
+    border:2px solid #e5e7eb;
+    transition:all .3s ease;
+    position:relative;
+}
+
+/* INPUT HOVER */
+.form-control:hover{
+    border-color:#3b82f6;
+}
+
+/* INPUT FOCUS EFFECT */
+.form-control:focus{
+    border-color:#22c55e;
+    box-shadow:0 0 0 .25rem rgba(34,197,94,.25);
+    transform:scale(1.02);
+}
+
+/* ================= BUTTON ================= */
+.btn-primary{
+    position:relative;
+    overflow:hidden;
+    font-size:1.15rem;
+    padding:1rem;
+    border:none;
+    border-radius:16px;
+    background:linear-gradient(120deg,#3b82f6,#22c55e,#3b82f6);
+    background-size:200%;
+    transition:all .35s ease;
+}
+
+/* GRADIENT SWEEP */
+.btn-primary:hover{
+    background-position:right;
+    transform:translateY(-4px);
+    box-shadow:0 18px 40px rgba(34,197,94,.5);
+}
+
+/* BUTTON PRESS */
+.btn-primary:active{
+    transform:scale(.96);
+}
+
+/* ================= LINK ================= */
+a{
+    transition:all .3s ease;
+}
+a:hover{
+    letter-spacing:.5px;
+}
+
+/* ================= LOADER ================= */
+.loading-overlay{
+    display:none;
+    position:fixed;
+    inset:0;
+    background:rgba(255,255,255,.95);
+    z-index:9999;
+    align-items:center;
+    justify-content:center;
+    flex-direction:column;
+}
+</style>
 </head>
 
 <body>
 
 <div class="bg-overlay"></div>
 
-<!-- Loading Overlay -->
+<!-- LOADER -->
 <div class="loading-overlay" id="loadingOverlay">
     <div class="spinner-border text-primary mb-3"></div>
-    <strong class="fs-5">AI is analyzing your resume…</strong>
+    <strong class="fs-4">AI is analyzing your resume…</strong>
 </div>
 
-<!-- CENTERED FORM -->
+<!-- CENTER -->
 <div class="container min-vh-100 d-flex align-items-center justify-content-center">
-    <div class="row w-100 justify-content-center">
-        <!-- BIGGER WIDTH -->
-        <div class="col-lg-7 col-md-9 col-sm-11">
+<div class="row w-100 justify-content-center">
+<div class="col-lg-7 col-md-9 col-sm-11">
 
-            <div class="card">
-                <h3 class="text-center mb-4 fw-bold title-ai">
-                    AI Resume Analyzer
-                </h3>
+<div class="card">
+    <h3 class="text-center mb-4 title-ai">AI Resume Analyzer</h3>
 
-                <form method="post" enctype="multipart/form-data" onsubmit="showLoader()">
-                    {% csrf_token %}
+    <form method="post" enctype="multipart/form-data" onsubmit="showLoader()">
+        {% csrf_token %}
 
-                    <div class="mb-4">
-                        <label class="form-label fw-semibold fs-5">
-                            Full Name
-                        </label>
-                        <input
-                            type="text"
-                            class="form-control"
-                            name="name"
-                            placeholder="Enter your full name"
-                            required>
-                    </div>
-
-                    <div class="mb-4">
-                        <label class="form-label fw-semibold fs-5">
-                            Upload Resume (PDF)
-                        </label>
-                        <input
-                            type="file"
-                            class="form-control"
-                            name="resume"
-                            accept=".pdf"
-                            required>
-                        <div class="form-text fs-6">
-                            Only PDF resumes are supported
-                        </div>
-                    </div>
-
-                    <button class="btn btn-primary w-100 py-3 fw-semibold">
-                        Analyze with AI
-                    </button>
-                </form>
-
-                <div class="text-center mt-4 fs-5">
-                    <a href="/history/" class="link-primary fw-semibold">
-                        View Analysis History →
-                    </a>
-                </div>
-
-            </div>
-
+        <div class="mb-4">
+            <label class="form-label fw-semibold fs-5">Full Name</label>
+            <input type="text" class="form-control" name="name" required>
         </div>
+
+        <div class="mb-4">
+            <label class="form-label fw-semibold fs-5">Upload Resume (PDF)</label>
+            <input type="file" class="form-control" name="resume" accept=".pdf" required>
+        </div>
+
+        <button class="btn btn-primary w-100 fw-semibold">
+            Analyze with AI
+        </button>
+    </form>
+
+    <div class="text-center mt-4 fs-5">
+        <a href="/history/" class="fw-semibold text-decoration-none">
+            View Analysis History →
+        </a>
     </div>
 </div>
 
-<!-- Bootstrap JS -->
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</div>
+</div>
+</div>
 
 <script>
-    // Resume / AI background images
-    const bgImages = [
-        "https://images.unsplash.com/photo-1526378722484-cc5c5109d1c4",
-        "https://images.unsplash.com/photo-1519389950473-47ba0277781c",
-        "https://images.unsplash.com/photo-1555949963-aa79dcee981c",
-        "https://images.unsplash.com/photo-1504384308090-c894fdcc538d"
-    ];
+const bgImages=[
+"https://images.unsplash.com/photo-1526378722484-cc5c5109d1c4",
+"https://images.unsplash.com/photo-1519389950473-47ba0277781c",
+"https://images.unsplash.com/photo-1555949963-aa79dcee981c"
+];
+let i=0;
+function changeBg(){
+    document.body.style.backgroundImage=`url('${bgImages[i]}')`;
+    i=(i+1)%bgImages.length;
+}
+changeBg();
+setInterval(changeBg,7000);
 
-    let index = 0;
-
-    function changeBackground() {
-        document.body.style.backgroundImage =
-            `url('${bgImages[index]}')`;
-        index = (index + 1) % bgImages.length;
-    }
-
-    changeBackground();
-    setInterval(changeBackground, 6000);
-
-    function showLoader() {
-        document.getElementById("loadingOverlay").style.display = "flex";
-    }
+function showLoader(){
+    document.getElementById("loadingOverlay").style.display="flex";
+}
 </script>
 
 </body>
