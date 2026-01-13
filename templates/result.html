@@ -16,7 +16,6 @@
             transition: background-image 1.2s ease-in-out;
         }
 
-        /* Dark overlay for readability */
         .bg-overlay {
             position: fixed;
             inset: 0;
@@ -24,7 +23,6 @@
             z-index: -1;
         }
 
-        /* Result card */
         .result-card {
             background: rgba(255, 255, 255, 0.96);
             border-radius: 20px;
@@ -43,7 +41,12 @@
             }
         }
 
-        /* Skill badge hover */
+        .title-ai {
+            background: linear-gradient(90deg, #3b82f6, #22c55e);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
         .skill-badge {
             transition: transform 0.2s ease, box-shadow 0.2s ease;
         }
@@ -53,19 +56,12 @@
             box-shadow: 0 6px 14px rgba(0,0,0,0.2);
         }
 
-        /* Progress animation */
         .progress-bar {
             animation: growBar 1.4s ease forwards;
         }
 
         @keyframes growBar {
             from { width: 0%; }
-        }
-
-        .title-ai {
-            background: linear-gradient(90deg, #3b82f6, #22c55e);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
         }
     </style>
 </head>
@@ -76,7 +72,7 @@
 
 <div class="container min-vh-100 d-flex align-items-center justify-content-center py-5">
     <div class="row w-100 justify-content-center">
-        <div class="col-lg-8 col-md-10">
+        <div class="col-lg-9 col-md-11">
 
             <div class="card p-5 result-card">
 
@@ -88,7 +84,7 @@
                     <b>Name:</b> {{ name }}
                 </p>
 
-                <!-- Resume Type -->
+                <!-- ROLE -->
                 <div class="text-center mb-4">
                     <h5 class="fw-semibold">Detected Resume Type</h5>
                     <span class="badge bg-primary fs-5 px-4 py-2">
@@ -98,7 +94,7 @@
 
                 <hr>
 
-                <!-- Match Percentage -->
+                <!-- MATCH % -->
                 <h5 class="fw-semibold">Match Percentage</h5>
                 <div class="fs-3 fw-bold text-success mb-2">
                     {{ percentage }}%
@@ -106,12 +102,11 @@
 
                 <div class="progress mb-4" style="height: 14px;">
                     <div class="progress-bar bg-success"
-                         role="progressbar"
                          style="width: {{ percentage }}%;">
                     </div>
                 </div>
 
-                <!-- AI Verdict -->
+                <!-- VERDICT -->
                 <div class="mb-4">
                     <h5 class="fw-semibold">AI Verdict</h5>
                     <span class="badge fs-6 px-3 py-2
@@ -124,7 +119,27 @@
 
                 <hr>
 
-                <!-- Skills Section -->
+                <!-- PROFILE ANALYSIS -->
+                <h4 class="fw-bold mb-3">Profile Analysis</h4>
+
+                <ul class="list-group mb-4">
+                    <li class="list-group-item">
+                        <b>Experience Level:</b> {{ experience }}
+                    </li>
+                    <li class="list-group-item">
+                        <b>Education Match:</b> {{ education }}
+                    </li>
+                    <li class="list-group-item">
+                        <b>Resume Quality Score:</b> {{ quality }}/10
+                    </li>
+                    <li class="list-group-item">
+                        <b>ATS Compatibility Score:</b> {{ ats }}%
+                    </li>
+                </ul>
+
+                <hr>
+
+                <!-- SKILLS -->
                 <div class="row">
                     <div class="col-md-6 mb-3">
                         <h5 class="fw-semibold">Matched Skills</h5>
@@ -133,7 +148,7 @@
                                 {{ skill }}
                             </span>
                         {% empty %}
-                            <p class="text-muted">No matched skills found</p>
+                            <p class="text-muted">No matched skills</p>
                         {% endfor %}
                     </div>
 
@@ -151,17 +166,21 @@
 
                 <hr>
 
-                <!-- AI Suggestions -->
+                <!-- ✅ AI SUGGESTIONS (FIXED, SAFE, ANIMATED UI KEPT) -->
                 <h5 class="fw-semibold">AI Suggestions</h5>
                 <ul class="list-group mb-4">
                     {% for tip in suggestions %}
                         <li class="list-group-item">
                             {{ tip }}
                         </li>
+                    {% empty %}
+                        <li class="list-group-item text-muted">
+                            No suggestions available. Your resume already meets most criteria.
+                        </li>
                     {% endfor %}
                 </ul>
 
-                <!-- Action Buttons -->
+                <!-- ACTIONS -->
                 <div class="text-center mt-4">
                     <a href="/" class="btn btn-outline-primary me-2 px-4">
                         Analyze Another Resume
@@ -178,19 +197,15 @@
 </div>
 
 <script>
-    // Dynamic AI / Resume background images
     const bgImages = [
         "https://images.unsplash.com/photo-1526378722484-cc5c5109d1c4",
         "https://images.unsplash.com/photo-1519389950473-47ba0277781c",
-        "https://images.unsplash.com/photo-1555949963-aa79dcee981c",
-        "https://images.unsplash.com/photo-1504384308090-c894fdcc538d"
+        "https://images.unsplash.com/photo-1555949963-aa79dcee981c"
     ];
 
     let index = 0;
-
     function changeBackground() {
-        document.body.style.backgroundImage =
-            `url('${bgImages[index]}')`;
+        document.body.style.backgroundImage = `url('${bgImages[index]}')`;
         index = (index + 1) % bgImages.length;
     }
 
