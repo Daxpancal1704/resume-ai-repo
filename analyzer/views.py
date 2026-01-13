@@ -18,7 +18,10 @@ ROLES = {
     ]
 }
 
-EDUCATION_KEYWORDS = ["bca", "mca", "btech", "computer science", "information technology"]
+EDUCATION_KEYWORDS = [
+    "bca", "mca", "btech",
+    "computer science", "information technology"
+]
 
 EXPERIENCE_KEYWORDS = {
     "Fresher": ["intern", "training", "student"],
@@ -47,6 +50,7 @@ def role_match(resume_skills):
     for role, skills in ROLES.items():
         matched = set(resume_skills) & set(skills)
         scores[role] = round((len(matched) / len(skills)) * 100, 2)
+
     best_role = max(scores, key=scores.get)
     return best_role, scores[best_role]
 
@@ -78,9 +82,13 @@ def resume_quality_score(text):
         score += 2
     return min(score, 10)
 
-# ================= ATS SCORE =================
+# ================= ATS SCORE (FIXED & CAPPED) =================
 def ats_score(resume_skills, role):
-    return round((len(resume_skills) / len(ROLES[role])) * 100, 2)
+    role_skills = set(ROLES[role])
+    matched = set(resume_skills) & role_skills
+
+    score = (len(matched) / len(role_skills)) * 100
+    return round(min(score, 100), 2)
 
 # ================= AI VERDICT =================
 def ai_verdict(score):
@@ -128,7 +136,10 @@ def upload_resume(request):
         name = request.POST.get("name") or "Anonymous"
         resume_file = request.FILES.get("resume")
 
-        resume = Resume.objects.create(name=name, resume_file=resume_file)
+        resume = Resume.objects.create(
+            name=name,
+            resume_file=resume_file
+        )
 
         text = extract_text(resume.resume_file.path)
         resume_skills = extract_skills(text)
